@@ -1,0 +1,43 @@
+@startuml Package
+title CanBankX - Package Diagram
+
+package "API Gateway" as gateway {
+    package controller as gateway_controller {}
+    package security as gateway_security {}
+    package routing as gateway_routing {}
+}
+
+package "Client Service" as cs {
+    package controller as cs_controller {}
+    package service as cs_service {}
+    package repository as cs_repository {}
+    package domain as cs_domain {}
+}
+
+package "Account Service" as ac {
+    package controller as ac_controller {}
+    package service as ac_service {}
+    package repository as ac_repository {}
+    package domain as ac_domain {}
+}
+
+package "Payment Service" as ps {
+    package controller as ps_controller {}
+    package service as ps_service {}
+    package repository as ps_repository {}
+    package domain as ps_domain {}
+}
+
+package "Ledger Service" as ls {
+    package controller as ls_controller {}
+    package service as ls_service {}
+    package repository as ls_repository {}
+    package domain as ls_domain {}
+}
+
+gateway --> cs
+gateway --> ac
+gateway --> ps
+gateway --> ls
+
+@enduml

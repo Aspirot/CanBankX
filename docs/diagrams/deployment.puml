@@ -1,0 +1,73 @@
+@startuml Deployment
+title CanBankX - Deployment Diagram
+
+node "Client Machine" {
+    component "React Frontend" as React
+}
+
+node "Spring Boot API Gateway Container" {
+    component "Spring Boot API Gateway"
+}
+
+node "Keycloak Container" {
+    component "Keycloak IAM"
+}
+
+node "Account Service Container\n<<instances: N>>" {
+    component "Spring Boot - Account Service"
+}
+
+node "Client Service Container\n<<instances: N>>" {
+    component "Spring Boot - Client Service"
+}
+
+node "Payment Service Container\n<<instances: N>>" {
+    component "Spring Boot - Payment Service"
+}
+
+node "Ledger Service Container\n<<instances: N>>" {
+    component "Spring Boot - Ledger Service"
+}
+
+node "Account DB Container\n<<instances: N>>" {
+    database "PostgreSQL - AccountDB"
+}
+
+node "Client DB Container\n<<instances: N>>" {
+    database "PostgreSQL - ClientDB"
+}
+
+node "Payment DB Container\n<<instances: N>>" {
+    database "PostgreSQL - PaymentDB"
+}
+
+node "Ledger DB Container\n<<instances: N>>" {
+    database "PostgreSQL - LedgerDB"
+}
+
+node "Monitoring Stack" {
+    component "Prometheus"
+    component "Grafana"
+}
+
+React --> "Spring Boot API Gateway" : HTTPS (JWT)
+"Spring Boot API Gateway" --> "Keycloak IAM" : OIDC Validation
+
+"Spring Boot API Gateway" --> "Spring Boot - Account Service"
+"Spring Boot API Gateway" --> "Spring Boot - Client Service"
+"Spring Boot API Gateway" --> "Spring Boot - Payment Service"
+"Spring Boot API Gateway" --> "Spring Boot - Ledger Service"
+
+"Spring Boot - Account Service" --> "PostgreSQL - AccountDB"
+"Spring Boot - Client Service" --> "PostgreSQL - ClientDB"
+"Spring Boot - Payment Service" --> "PostgreSQL - PaymentDB"
+"Spring Boot - Ledger Service" --> "PostgreSQL - LedgerDB"
+
+Prometheus --> "Spring Boot - Account Service"
+Prometheus --> "Spring Boot - Client Service"
+Prometheus --> "Spring Boot - Payment Service"
+Prometheus --> "Spring Boot - Ledger Service"
+
+Grafana --> Prometheus
+
+@enduml

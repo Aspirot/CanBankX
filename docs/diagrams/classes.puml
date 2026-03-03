@@ -1,0 +1,91 @@
+@startuml Classes
+title CanBankX - Diagramme de classes
+
+hide empty members
+
+enum ClientStatus {
+    PENDING
+    APPROVED
+    REFUSED
+    SUSPENDED
+}
+
+enum AccountStatus {
+    ACTIVE
+    FROZEN
+    CLOSED
+}
+
+enum EntryType {
+    DEBIT
+    CREDIT
+}
+
+enum TransactionStatus {
+    PENDING
+    COMPLETED
+    REJECTED
+}
+
+class Client {
+    - id : Long
+    - lastName : String
+    - firstName : String
+    - sin : String
+    - email : String
+    - phone : String
+    - creationDate : Date
+    - status : ClientStatus
+}
+
+class Account {
+    - id : Long
+    - accountNumber : String
+    - balance : Double
+    - creationDate : Date
+    - status : AccountStatus
+}
+
+abstract class Transaction {
+    - id : Long
+    - amount : Double
+    - creationDate : Date
+    - status : TransactionStatus
+}
+
+class Transfer {
+}
+
+class Payment {
+}
+
+class Supplier {
+    - id : Long
+    - name : String
+    - serviceType : String
+    - paymentReference : String
+}
+
+class LedgerEntry {
+    - id : Long
+    - amount : Double
+    - date : Date
+    - entryType : EntryType
+}
+
+Transaction <|-- Transfer
+Transaction <|-- Payment
+
+Client "1" -- "*" Account : possède >
+
+Transfer "*" -- "1" Account : compteSource >
+Transfer "*" -- "1" Client : clientDestinataire >
+Transfer "*" -- "0..1" Account : compteDestination >
+
+Payment "*" -- "1" Account : compteSource >
+Payment "*" -- "1" Supplier : fournisseur >
+
+Transaction "1" -- "*" LedgerEntry : génère >
+LedgerEntry "*" -- "1" Account : account >
+
+@enduml

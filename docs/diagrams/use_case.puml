@@ -1,0 +1,20 @@
+@startuml Use-case
+title CanBankX - Diagramme de cas d'utilisation
+left to right direction
+actor Client as c
+
+package CanBankX {
+    usecase "S'inscrire" as UC1
+    usecase "S'authentifier" as UC2
+    usecase "Créer un compte" as UC3
+    usecase "Virer des fonds" as UC5
+    usecase "Payer une facture" as UC6
+    usecase "Produire un relevé bancaire" as UC8
+}
+c --> UC1
+c --> UC2
+c --> UC3
+c --> UC5
+c --> UC6
+c --> UC8
+@enduml

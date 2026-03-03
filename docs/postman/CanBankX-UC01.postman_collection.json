@@ -1,0 +1,251 @@
+{
+  "info": {
+    "_postman_id": "f2f7f8e7-4696-4a66-9fb7-46f833a6f1bb",
+    "name": "CanBankX - UC01 Inscription KYC + OTP",
+    "description": "Collection pour tester UC-01 via API Gateway + Keycloak OTP.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0 - Gateway Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{gatewayBaseUrl}}/actuator/health",
+          "host": [
+            "{{gatewayBaseUrl}}"
+          ],
+          "path": [
+            "actuator",
+            "health"
+          ]
+        },
+        "description": "Vérifie que la Gateway répond."
+      },
+      "response": []
+    },
+    {
+      "name": "1 - UC01 Register Client (PENDING)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"{{firstName}}\",\n  \"lastName\": \"{{lastName}}\",\n  \"email\": \"{{email}}\",\n  \"sin\": \"{{sin}}\",\n  \"phone\": \"{{phone}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{gatewayBaseUrl}}/api/v1/clients/registrations",
+          "host": [
+            "{{gatewayBaseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "clients",
+            "registrations"
+          ]
+        },
+        "description": "Crée un profil client PENDING et un utilisateur Keycloak avec action CONFIGURE_TOTP."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const data = pm.response.json();",
+              "if (data && data.clientId) {",
+              "  pm.environment.set('clientId', data.clientId);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Keycloak Token (Password + OTP)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "password",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "{{authClientId}}",
+              "type": "text"
+            },
+            {
+              "key": "username",
+              "value": "{{email}}",
+              "type": "text"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}",
+              "type": "text"
+            },
+            {
+              "key": "totp",
+              "value": "{{otp}}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{keycloakBaseUrl}}/realms/{{realm}}/protocol/openid-connect/token",
+          "host": [
+            "{{keycloakBaseUrl}}"
+          ],
+          "path": [
+            "realms",
+            "{{realm}}",
+            "protocol",
+            "openid-connect",
+            "token"
+          ]
+        },
+        "description": "Valide que l'utilisateur passe bien MFA OTP côté Keycloak."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const tokenData = pm.response.json();",
+              "if (tokenData && tokenData.access_token) {",
+              "  pm.environment.set('accessToken', tokenData.access_token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - UC01 Confirm Registration (ACTIVE)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"otp\": \"{{otp}}\"\n}"
+        },
+        "url": {
+          "raw": "{{gatewayBaseUrl}}/api/v1/clients/registrations/confirm",
+          "host": [
+            "{{gatewayBaseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "clients",
+            "registrations",
+            "confirm"
+          ]
+        },
+        "description": "Confirme l'inscription avec OTP et active le profil si KYC passe."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "gatewayBaseUrl",
+      "value": "http://localhost:8085"
+    },
+    {
+      "key": "keycloakBaseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "realm",
+      "value": "bank-realm"
+    },
+    {
+      "key": "authClientId",
+      "value": "bank-api"
+    },
+    {
+      "key": "firstName",
+      "value": "Denis"
+    },
+    {
+      "key": "lastName",
+      "value": "Aspirot"
+    },
+    {
+      "key": "email",
+      "value": "denis.aspirot.1@ens.etsmtl.ca"
+    },
+    {
+      "key": "sin",
+      "value": "123456789"
+    },
+    {
+      "key": "phone",
+      "value": "+15145551234"
+    },
+    {
+      "key": "password",
+      "value": "MotDePasseTresFort123!"
+    },
+    {
+      "key": "otp",
+      "value": "000000"
+    },
+    {
+      "key": "clientId",
+      "value": ""
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    }
+  ]
+}
