@@ -1,0 +1,50 @@
+@startuml Activity-UC01
+title CanBankX - UC-01 Inscription & Verification d'identité (KYC)
+
+|Client|
+start
+:Soumettre les donnees personnelles\n(nom, adresse, NAS simule, email, telephone, mot de passe);
+
+|CanBankX|
+:Valide le format des donnees;
+if (Donnees valides ?) then (Oui)
+  :Verifier unicite email/NAS local;
+  if (Email/NAS deja existant ?) then (Oui)
+    :Retourner erreur 409 Conflict;
+    stop
+  else (Non)
+    :Créer client Keycloak\n(required action: CONFIGURE_TOTP);
+    if (Creation Keycloak OK ?) then (Oui)
+      :Créer profil client local avec statut PENDING;
+      :Retourner confirmation "profil PENDING";
+    else (Non)
+      :Retourner erreur 400/500;
+      stop
+    endif
+  endif
+else (Non)
+  :Retourner erreur 400 Bad Request;
+  stop
+endif
+
+|Client|
+:Configurer OTP (TOTP) dans Keycloak;
+:Soumettre email + mot de passe + code OTP;
+
+|CanBankX|
+:Valide OTP via Keycloak;
+if (OTP valide ?) then (Oui)
+  :Executer validation KYC;
+  if (KYC accepte ?) then (Oui)
+    :Mettre profil en ACTIVE;
+    :Retourner succes;
+  else (Non)
+    :Mettre profil en REJECTED;
+    :Retourner echec KYC;
+  endif
+else (Non)
+  :Retourner erreur OTP invalide;
+endif
+
+stop
+@enduml

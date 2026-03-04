@@ -1,4 +1,4 @@
-package ens.etsmtl.ca.clientservice.api.dto;
+package ens.etsmtl.ca.clientservice.model.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,6 +11,6 @@ public record RegistrationRequest(
         @NotBlank @Email @Size(max = 150) String email,
         @NotBlank @Pattern(regexp = "^[0-9]{9}$", message = "SIN must contain exactly 9 digits") String sin,
         @NotBlank @Pattern(regexp = "^\\+?[0-9\\- ]{7,25}$", message = "Invalid phone format") String phone,
-        @NotBlank @Size(min = 12, max = 100) String password
+        @NotBlank @Size(min = 6, max = 100) String password
 ) {
 }

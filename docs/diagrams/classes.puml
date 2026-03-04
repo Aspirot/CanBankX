@@ -10,6 +10,11 @@ enum ClientStatus {
     SUSPENDED
 }
 
+enum AccountType {
+    CHECKING
+    SAVINGS
+}
+
 enum AccountStatus {
     ACTIVE
     FROZEN
@@ -40,6 +45,7 @@ class Client {
 
 class Account {
     - id : Long
+    - type : AccountType
     - accountNumber : String
     - balance : Double
     - creationDate : Date

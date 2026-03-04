@@ -7,3 +7,4 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(KeycloakProperties.class)
 public class ClientServiceConfig {
 }
+

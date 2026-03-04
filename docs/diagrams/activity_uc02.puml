@@ -1,0 +1,30 @@
+@startuml Activity-UC02
+title CanBankX - UC-02 Authentification & MFA
+
+|Client|
+start
+:Saisir identifiant (email) et mot de passe;
+
+|CanBankX|
+:Verifier identifiants via Keycloak;
+if (Identifiants valides ?) then (Oui)
+  :Demander second facteur MFA;
+else (Non)
+  :Retourner erreur 401 Unauthorized;
+  stop
+endif
+
+|Client|
+:Fournir code OTP;
+
+|CanBankX|
+:Verifier second facteur MFA;
+if (MFA valide ?) then (Oui)
+  :Générer tokens/session securisée;
+  :Retourner accès autorisé;
+else (Non)
+  :Retourner erreur 401 MFA invalide;
+endif
+
+stop
+@enduml

@@ -18,6 +18,7 @@ public class SecurityConfig {
         http
                 .securityMatcher(
                         "/api/v1/clients/registrations/**",
+                        "/api/v1/clients/login/**",
                         "/actuator/health",
                         "/actuator/info",
                         "/actuator/prometheus",
@@ -47,3 +48,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+

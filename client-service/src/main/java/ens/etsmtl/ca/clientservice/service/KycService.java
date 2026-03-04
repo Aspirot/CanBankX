@@ -13,3 +13,4 @@ public class KycService {
         return checksum % 2 == 0;
     }
 }
+

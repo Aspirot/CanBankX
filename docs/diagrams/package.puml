@@ -1,43 +1,95 @@
 @startuml Package
 title CanBankX - Package Diagram
 
+skinparam linetype ortho
+
 package "API Gateway" as gateway {
-    package controller as gateway_controller {}
-    package security as gateway_security {}
-    package routing as gateway_routing {}
+    package "routing" as gateway_routing {}
+    package "security" as gateway_security {}
+    package "filters" as gateway_filters {}
 }
 
 package "Client Service" as cs {
-    package controller as cs_controller {}
-    package service as cs_service {}
-    package repository as cs_repository {}
-    package domain as cs_domain {}
+    package "api" as cs_api {}
+    package "application" as cs_app {}
+    package "domain" as cs_domain {}
+    package "infrastructure" as cs_infra {}
 }
 
 package "Account Service" as ac {
-    package controller as ac_controller {}
-    package service as ac_service {}
-    package repository as ac_repository {}
-    package domain as ac_domain {}
+    package "api" as ac_api {}
+    package "application" as ac_app {}
+    package "domain" as ac_domain {}
+    package "infrastructure" as ac_infra {}
 }
 
 package "Payment Service" as ps {
-    package controller as ps_controller {}
-    package service as ps_service {}
-    package repository as ps_repository {}
-    package domain as ps_domain {}
+    package "api" as ps_api {}
+    package "application" as ps_app {}
+    package "domain" as ps_domain {}
+    package "infrastructure" as ps_infra {}
 }
 
 package "Ledger Service" as ls {
-    package controller as ls_controller {}
-    package service as ls_service {}
-    package repository as ls_repository {}
-    package domain as ls_domain {}
+    package "api" as ls_api {}
+    package "application" as ls_app {}
+    package "domain" as ls_domain {}
+    package "infrastructure" as ls_infra {}
 }
 
-gateway --> cs
-gateway --> ac
-gateway --> ps
-gateway --> ls
+package "Identity Provider" as idp {
+    package "Keycloak (OIDC/OAuth2)" as keycloak {}
+}
+
+package "Data Stores" as data {
+    package "ClientDB" as clientdb {}
+    package "AccountDB" as accountdb {}
+    package "PaymentDB" as paymentdb {}
+    package "LedgerDB" as ledgerdb {}
+}
+
+package "Observability" as obs {
+    package "Prometheus" as prometheus {}
+    package "Grafana" as grafana {}
+}
+
+gateway_routing ..> cs_api : <<access>>
+gateway_routing ..> ac_api : <<access>>
+gateway_routing ..> ps_api : <<access>>
+gateway_routing ..> ls_api : <<access>>
+gateway_security ..> keycloak : <<access>>
+
+cs_api ..> cs_app : <<access>>
+cs_app ..> cs_domain : <<import>>
+cs_infra ..> cs_domain : <<access>>
+
+ac_api ..> ac_app : <<access>>
+ac_app ..> ac_domain : <<import>>
+ac_infra ..> ac_domain : <<access>>
+
+ps_api ..> ps_app : <<access>>
+ps_app ..> ps_domain : <<import>>
+ps_infra ..> ps_domain : <<access>>
+
+ls_api ..> ls_app : <<access>>
+ls_app ..> ls_domain : <<import>>
+ls_infra ..> ls_domain : <<access>>
+
+cs_infra ..> clientdb : <<access>>
+ac_infra ..> accountdb : <<access>>
+ps_infra ..> paymentdb : <<access>>
+ls_infra ..> ledgerdb : <<access>>
+
+prometheus ..> gateway : <<access>>
+prometheus ..> cs : <<access>>
+prometheus ..> ac : <<access>>
+prometheus ..> ps : <<access>>
+prometheus ..> ls : <<access>>
+grafana ..> prometheus : <<access>>
+
+gateway ..> cs : <<access>>
+gateway ..> ac : <<access>>
+gateway ..> ps : <<access>>
+gateway ..> ls : <<access>>
 
 @enduml

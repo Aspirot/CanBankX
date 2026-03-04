@@ -1,9 +1,9 @@
-package ens.etsmtl.ca.clientservice.api;
+package ens.etsmtl.ca.accountservice.api;
 
-import ens.etsmtl.ca.clientservice.model.dto.ErrorResponse;
-import ens.etsmtl.ca.clientservice.service.exception.ConflictException;
-import ens.etsmtl.ca.clientservice.service.exception.NotFoundException;
-import ens.etsmtl.ca.clientservice.service.exception.ValidationException;
+import ens.etsmtl.ca.accountservice.model.dto.ErrorResponse;
+import ens.etsmtl.ca.accountservice.service.exception.ConflictException;
+import ens.etsmtl.ca.accountservice.service.exception.ExternalServiceException;
+import ens.etsmtl.ca.accountservice.service.exception.ValidationException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -24,14 +24,17 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex, HttpServletRequest request) {
-        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
-    }
-
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidation(ValidationException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(ExternalServiceException.class)
+    public ResponseEntity<ErrorResponse> handleExternalService(
+            ExternalServiceException ex,
+            HttpServletRequest request
+    ) {
+        return build(HttpStatus.BAD_GATEWAY, ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -40,7 +43,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         String details = ex.getBindingResult().getFieldErrors().stream()
-                .map(fieldError -> formatFieldError(fieldError))
+                .map(this::formatFieldError)
                 .collect(Collectors.joining("; "));
         return build(HttpStatus.BAD_REQUEST, details, request.getRequestURI());
     }

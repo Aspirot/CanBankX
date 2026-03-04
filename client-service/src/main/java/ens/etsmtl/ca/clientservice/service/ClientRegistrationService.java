@@ -1,11 +1,11 @@
 package ens.etsmtl.ca.clientservice.service;
 
-import ens.etsmtl.ca.clientservice.api.dto.RegistrationConfirmationRequest;
-import ens.etsmtl.ca.clientservice.api.dto.RegistrationRequest;
-import ens.etsmtl.ca.clientservice.api.dto.RegistrationResponse;
-import ens.etsmtl.ca.clientservice.domain.ClientProfile;
-import ens.etsmtl.ca.clientservice.domain.ClientStatus;
-import ens.etsmtl.ca.clientservice.repository.ClientProfileRepository;
+import ens.etsmtl.ca.clientservice.model.Client;
+import ens.etsmtl.ca.clientservice.model.ClientStatus;
+import ens.etsmtl.ca.clientservice.model.dto.RegistrationConfirmationRequest;
+import ens.etsmtl.ca.clientservice.model.dto.RegistrationRequest;
+import ens.etsmtl.ca.clientservice.model.dto.RegistrationResponse;
+import ens.etsmtl.ca.clientservice.repository.ClientRepository;
 import ens.etsmtl.ca.clientservice.service.exception.ConflictException;
 import ens.etsmtl.ca.clientservice.service.exception.NotFoundException;
 import ens.etsmtl.ca.clientservice.service.exception.ValidationException;
@@ -17,27 +17,22 @@ import java.time.OffsetDateTime;
 @Service
 public class ClientRegistrationService {
 
-    private final ClientProfileRepository clientProfileRepository;
+    private final ClientRepository clientRepository;
     private final KeycloakAdminService keycloakAdminService;
     private final KycService kycService;
 
-    public ClientRegistrationService(
-            ClientProfileRepository clientProfileRepository,
+    public ClientRegistrationService(ClientRepository clientRepository,
             KeycloakAdminService keycloakAdminService,
-            KycService kycService
-    ) {
-        this.clientProfileRepository = clientProfileRepository;
+            KycService kycService) {
+        this.clientRepository = clientRepository;
         this.keycloakAdminService = keycloakAdminService;
         this.kycService = kycService;
     }
 
     @Transactional
     public RegistrationResponse register(RegistrationRequest request) {
-        if (clientProfileRepository.existsByEmailIgnoreCase(request.email())) {
-            throw new ConflictException("A client profile already exists for this email");
-        }
-        if (clientProfileRepository.existsBySin(request.sin())) {
-            throw new ConflictException("A client profile already exists for this SIN");
+        if (clientRepository.existsByEmailIgnoreCaseOrSin(request.email(), request.sin())) {
+            throw new ConflictException("A client already exists with this email or SIN");
         }
 
         String keycloakUserId = keycloakAdminService.createUser(
@@ -47,17 +42,17 @@ public class ClientRegistrationService {
                 request.password()
         );
 
-        ClientProfile profile = new ClientProfile();
-        profile.setFirstName(request.firstName());
-        profile.setLastName(request.lastName());
-        profile.setEmail(request.email().toLowerCase());
-        profile.setSin(request.sin());
-        profile.setPhone(request.phone());
-        profile.setKeycloakUserId(keycloakUserId);
-        profile.setStatus(ClientStatus.PENDING);
-        profile.setCreatedAt(OffsetDateTime.now());
+        Client client = new Client();
+        client.setFirstName(request.firstName());
+        client.setLastName(request.lastName());
+        client.setEmail(request.email().toLowerCase());
+        client.setSin(request.sin());
+        client.setPhone(request.phone());
+        client.setKeycloakUserId(keycloakUserId);
+        client.setStatus(ClientStatus.PENDING);
+        client.setCreatedAt(OffsetDateTime.now());
 
-        ClientProfile saved = clientProfileRepository.save(profile);
+        Client saved = clientRepository.save(client);
         return new RegistrationResponse(
                 saved.getId(),
                 saved.getEmail(),
@@ -68,29 +63,29 @@ public class ClientRegistrationService {
 
     @Transactional
     public RegistrationResponse confirm(RegistrationConfirmationRequest request) {
-        ClientProfile profile = clientProfileRepository.findByEmailIgnoreCase(request.email())
+        Client client = clientRepository.findByEmailIgnoreCase(request.email())
                 .orElseThrow(() -> new NotFoundException("Client profile not found"));
 
-        if (profile.getStatus() == ClientStatus.ACTIVE) {
+        if (client.getStatus() == ClientStatus.ACTIVE) {
             return new RegistrationResponse(
-                    profile.getId(),
-                    profile.getEmail(),
-                    profile.getStatus(),
+                    client.getId(),
+                    client.getEmail(),
+                    client.getStatus(),
                     "Client already active"
             );
         }
 
         keycloakAdminService.verifyOtp(request.email(), request.password(), request.otp());
 
-        if (!kycService.isEligibleForActivation(profile.getSin())) {
-            profile.setStatus(ClientStatus.REJECTED);
-            clientProfileRepository.save(profile);
+        if (!kycService.isEligibleForActivation(client.getSin())) {
+            client.setStatus(ClientStatus.REJECTED);
+            clientRepository.save(client);
             throw new ValidationException("KYC validation failed, profile rejected");
         }
 
-        profile.setStatus(ClientStatus.ACTIVE);
-        profile.setActivatedAt(OffsetDateTime.now());
-        ClientProfile saved = clientProfileRepository.save(profile);
+        client.setStatus(ClientStatus.ACTIVE);
+        client.setActivatedAt(OffsetDateTime.now());
+        Client saved = clientRepository.save(client);
 
         return new RegistrationResponse(
                 saved.getId(),

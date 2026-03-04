@@ -27,6 +27,30 @@
       "webOrigins": [
         "*"
       ]
+    },
+    {
+      "clientId": "account-service",
+      "name": "CanBankX Account Service",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "account-service-secret",
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "standardFlowEnabled": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": [
+        "internal.service"
+      ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "internal.service",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      }
     }
   ]
 }

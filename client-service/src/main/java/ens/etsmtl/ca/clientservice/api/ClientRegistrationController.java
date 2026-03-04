@@ -1,8 +1,8 @@
 package ens.etsmtl.ca.clientservice.api;
 
-import ens.etsmtl.ca.clientservice.api.dto.RegistrationConfirmationRequest;
-import ens.etsmtl.ca.clientservice.api.dto.RegistrationRequest;
-import ens.etsmtl.ca.clientservice.api.dto.RegistrationResponse;
+import ens.etsmtl.ca.clientservice.model.dto.RegistrationConfirmationRequest;
+import ens.etsmtl.ca.clientservice.model.dto.RegistrationRequest;
+import ens.etsmtl.ca.clientservice.model.dto.RegistrationResponse;
 import ens.etsmtl.ca.clientservice.service.ClientRegistrationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

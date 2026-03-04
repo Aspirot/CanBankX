@@ -1,4 +1,4 @@
-package ens.etsmtl.ca.clientservice.api.dto;
+package ens.etsmtl.ca.accountservice.model.dto;
 
 import java.time.OffsetDateTime;
 

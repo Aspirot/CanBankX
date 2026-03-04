@@ -59,3 +59,4 @@ public class KeycloakProperties {
         this.authClientId = authClientId;
     }
 }
+

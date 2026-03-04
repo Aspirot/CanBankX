@@ -1,6 +1,6 @@
-package ens.etsmtl.ca.clientservice.api.dto;
+package ens.etsmtl.ca.clientservice.model.dto;
 
-import ens.etsmtl.ca.clientservice.domain.ClientStatus;
+import ens.etsmtl.ca.clientservice.model.ClientStatus;
 
 public record RegistrationResponse(
         Long clientId,

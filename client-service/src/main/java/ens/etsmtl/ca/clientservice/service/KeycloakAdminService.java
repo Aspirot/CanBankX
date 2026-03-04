@@ -76,6 +76,10 @@ public class KeycloakAdminService {
     }
 
     public void verifyOtp(String username, String password, String otp) {
+        authenticateWithOtp(username, password, otp);
+    }
+
+    public Map<String, Object> authenticateWithOtp(String username, String password, String otp) {
         String tokenUri = properties.getBaseUrl() + "/realms/" + properties.getRealm() + "/protocol/openid-connect/token";
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "password");
@@ -85,12 +89,16 @@ public class KeycloakAdminService {
         form.add("totp", otp);
 
         try {
-            restClient.post()
+            Map<?, ?> response = restClient.post()
                     .uri(tokenUri)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(form)
                     .retrieve()
-                    .toEntity(Map.class);
+                    .body(Map.class);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> tokens = (Map<String, Object>) response;
+            return tokens;
         } catch (RestClientResponseException ex) {
             throw new ValidationException("OTP validation failed in Keycloak");
         }
@@ -122,3 +130,4 @@ public class KeycloakAdminService {
         }
     }
 }
+

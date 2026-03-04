@@ -1,4 +1,4 @@
-package ens.etsmtl.ca.clientservice.domain;
+package ens.etsmtl.ca.clientservice.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,8 +12,8 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "client_profiles")
-public class ClientProfile {
+@Table(name = "clients")
+public class Client {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
