@@ -7,6 +7,7 @@ import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.stripPrefix;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -21,6 +22,12 @@ public class ApiGatewayApplication {
     private String accountServiceUrl;
     @Value("${gateway.ledger-service-url:http://localhost:8084}")
     private String ledgerServiceUrl;
+    @Value("${gateway.payment-service-url:http://localhost:8083}")
+    private String paymentServiceUrl;
+    @Value("${internal.gateway.header-name:X-Internal-Gateway}")
+    private String internalGatewayHeaderName;
+    @Value("${internal.gateway.secret:canbankx-gateway-secret}")
+    private String internalGatewaySecret;
 
     public static void main(String[] args) {
         org.springframework.boot.SpringApplication.run(ApiGatewayApplication.class, args);
@@ -30,6 +37,7 @@ public class ApiGatewayApplication {
     public RouterFunction<ServerResponse> gatewayRoutes() {
         return route("client_service")
                 .route(path("/api/v1/clients/**"), http())
+                .before(addRequestHeader(internalGatewayHeaderName, internalGatewaySecret))
                 .before(uri(clientServiceUrl))
                 .build()
                 .and(route("client_service_docs")
@@ -39,6 +47,7 @@ public class ApiGatewayApplication {
                         .build())
                 .and(route("account_service")
                         .route(path("/api/v1/accounts/**"), http())
+                        .before(addRequestHeader(internalGatewayHeaderName, internalGatewaySecret))
                         .before(uri(accountServiceUrl))
                         .build())
                 .and(route("account_service_docs")
@@ -46,8 +55,24 @@ public class ApiGatewayApplication {
                         .before(stripPrefix(2))
                         .before(uri(accountServiceUrl))
                         .build())
+                .and(route("payment_service")
+                        .route(path("/api/v1/transfers/**"), http())
+                        .before(addRequestHeader(internalGatewayHeaderName, internalGatewaySecret))
+                        .before(uri(paymentServiceUrl))
+                        .build())
+                .and(route("ledger_statement_service")
+                        .route(path("/api/v1/ledger/accounts/**"), http())
+                        .before(addRequestHeader(internalGatewayHeaderName, internalGatewaySecret))
+                        .before(uri(ledgerServiceUrl))
+                        .build())
+                .and(route("internal_account_service")
+                        .route(path("/internal/api/v1/accounts/**"), http())
+                        .before(addRequestHeader(internalGatewayHeaderName, internalGatewaySecret))
+                        .before(uri(accountServiceUrl))
+                        .build())
                 .and(route("internal_ledger_service")
                         .route(path("/internal/api/v1/ledger/**"), http())
+                        .before(addRequestHeader(internalGatewayHeaderName, internalGatewaySecret))
                         .before(stripPrefix(1))
                         .before(uri(ledgerServiceUrl))
                         .build());

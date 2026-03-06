@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  ledger-db:
+    image: postgres:15
+    container_name: ledger-db
+    environment:
+      POSTGRES_DB: ledgerdb
+      POSTGRES_USER: ledger
+      POSTGRES_PASSWORD: ledger
+    ports:
+      - "5435:5432"
+    volumes:
+      - ledger-db-data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ledger -d ledgerdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - canbankx-network
+
+  ledger-service:
+    build: .
+    container_name: ledger-service
+    depends_on:
+      ledger-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ledger-db:5432/ledgerdb
+      SPRING_DATASOURCE_USERNAME: ledger
+      SPRING_DATASOURCE_PASSWORD: ledger
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/bank-realm
+      INTERNAL_GATEWAY_HEADER_NAME: X-Internal-Gateway
+      INTERNAL_GATEWAY_SECRET: canbankx-gateway-secret
+    ports:
+      - "8084:8084"
+    networks:
+      - canbankx-network
+
+volumes:
+  ledger-db-data:
+
+networks:
+  canbankx-network:
+    external: true
+    name: canbankx-network

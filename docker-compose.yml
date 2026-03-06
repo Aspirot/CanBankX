@@ -69,6 +69,28 @@ services:
     networks:
       - backend
 
+  # ----------------------------
+  # API Gateway
+  # ----------------------------
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    environment:
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/bank-realm
+      CLIENT_SERVICE_URL: http://client-service:8081
+      ACCOUNT_SERVICE_URL: http://account-service:8082
+      PAYMENT_SERVICE_URL: http://payment-service:8083
+      LEDGER_SERVICE_URL: http://ledger-service:8084
+      INTERNAL_GATEWAY_HEADER_NAME: X-Internal-Gateway
+      INTERNAL_GATEWAY_SECRET: canbankx-gateway-secret
+    ports:
+      - "8085:8085"
+    depends_on:
+      - keycloak
+    networks:
+      - backend
+
 # ----------------------------
 # Volumes
 # ----------------------------
@@ -80,4 +102,5 @@ volumes:
 # ----------------------------
 networks:
   backend:
+    name: canbankx-network
     driver: bridge

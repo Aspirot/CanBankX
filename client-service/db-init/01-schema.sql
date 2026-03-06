@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS clients (
+    id BIGSERIAL PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    sin VARCHAR(11) NOT NULL UNIQUE,
+    phone VARCHAR(25) NOT NULL,
+    keycloak_user_id VARCHAR(64) NOT NULL UNIQUE,
+    status VARCHAR(20) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    activated_at TIMESTAMPTZ
+);

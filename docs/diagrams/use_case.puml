@@ -2,14 +2,17 @@
 title CanBankX - Diagramme de cas d'utilisation
 left to right direction
 actor Client as c
+actor Fournisseur as s
 
 package CanBankX {
     usecase "S'inscrire" as UC1
     usecase "S'authentifier" as UC2
     usecase "Créer un compte" as UC3
     usecase "Virer des fonds" as UC5
-    usecase "Payer une facture" as UC6
+    usecase "Payer une facture" as UC6 #00FF00
     usecase "Produire un relevé bancaire" as UC8
+    usecase "Recevoir des fonds par Intérac" as UC9 #00FF00
+    usecase "Recevoir un paiement" as UC10 #00FF00
 }
 c --> UC1
 c --> UC2
@@ -17,4 +20,11 @@ c --> UC3
 c --> UC5
 c --> UC6
 c --> UC8
+c --> UC9
+s --> UC10
+legend
+    |Couleur| Description |
+    | | Implémenté |
+    |<#00FF00>| Non implémenté |
+end legend
 @enduml

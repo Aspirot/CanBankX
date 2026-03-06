@@ -49,11 +49,11 @@ public class AccountService {
 
         ledgerClient.appendEntry(new LedgerEntryRequest(
                 saved.getId(),
-                saved.getClientId(),
-                "ACCOUNT_OPENED",
+                0L,
+                "account-" + saved.getId() + "-creation",
                 saved.getBalance(),
-                "Account opened with initial balance",
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                "ACCOUNT_CREATION"
         ));
 
         return new AccountResponse(

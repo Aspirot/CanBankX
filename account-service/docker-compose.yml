@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  account-db:
+    image: postgres:15
+    container_name: account-db
+    environment:
+      POSTGRES_DB: accountdb
+      POSTGRES_USER: account
+      POSTGRES_PASSWORD: account
+    ports:
+      - "5434:5432"
+    volumes:
+      - account-db-data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U account -d accountdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - canbankx-network
+
+  account-service:
+    build: .
+    container_name: account-service
+    depends_on:
+      account-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://account-db:5432/accountdb
+      SPRING_DATASOURCE_USERNAME: account
+      SPRING_DATASOURCE_PASSWORD: account
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/bank-realm
+      LEDGER_SERVICE_URL: http://api-gateway:8085/internal
+      INTERNAL_AUTH_TOKEN_URL: http://keycloak:8080/realms/bank-realm/protocol/openid-connect/token
+      INTERNAL_GATEWAY_HEADER_NAME: X-Internal-Gateway
+      INTERNAL_GATEWAY_SECRET: canbankx-gateway-secret
+    ports:
+      - "8082:8082"
+    networks:
+      - canbankx-network
+
+volumes:
+  account-db-data:
+
+networks:
+  canbankx-network:
+    external: true
+    name: canbankx-network

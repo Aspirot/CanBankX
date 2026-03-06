@@ -1,0 +1,26 @@
+@startuml Activity-UC03
+title UC-03 - Ouverture d'un compte bancaire
+
+|Client|
+start
+:Choisir le type de compte;
+:Soumettre la demande d'ouverture;
+
+|CanBankX|
+:Vérifier authentification et droits d'accès;
+if (Authentifié?) then (Oui)
+if (Type choisi?) then (Chèque)
+  :Créer le compte cheque\navec solde initial;
+else (Épargne)
+  :Créer le compte épargne\navec solde initial;
+endif
+:Journaliser l'opération comptable;
+:Activer le compte;
+else (Non)
+:Refuser la demande (401/403);
+endif
+
+|Client|
+:Compte actif disponible;
+stop
+@enduml

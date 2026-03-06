@@ -5,10 +5,10 @@ import java.time.OffsetDateTime;
 
 public record LedgerEntryRequest(
         Long accountId,
-        Long clientId,
-        String eventType,
+        Long transactionId,
+        String idempotencyKey,
         BigDecimal amount,
-        String description,
-        OffsetDateTime createdAt
+        OffsetDateTime date,
+        String entryType
 ) {
 }

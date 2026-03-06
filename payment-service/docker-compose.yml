@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+  payment-db:
+    image: postgres:15
+    container_name: payment-db
+    environment:
+      POSTGRES_DB: paymentdb
+      POSTGRES_USER: payment
+      POSTGRES_PASSWORD: payment
+    ports:
+      - "5436:5432"
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payment -d paymentdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - canbankx-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: payment-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - canbankx-network
+
+  payment-service:
+    build: .
+    container_name: payment-service
+    depends_on:
+      payment-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://payment-db:5432/paymentdb
+      SPRING_DATASOURCE_USERNAME: payment
+      SPRING_DATASOURCE_PASSWORD: payment
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/bank-realm
+      API_GATEWAY_URL: http://api-gateway:8085
+      INTERNAL_AUTH_TOKEN_URL: http://keycloak:8080/realms/bank-realm/protocol/openid-connect/token
+      MAILHOG_HOST: mailhog
+      MAILHOG_PORT: 1025
+      INTERNAL_GATEWAY_HEADER_NAME: X-Internal-Gateway
+      INTERNAL_GATEWAY_SECRET: canbankx-gateway-secret
+    ports:
+      - "8083:8083"
+    networks:
+      - canbankx-network
+
+volumes:
+  payment-db-data:
+
+networks:
+  canbankx-network:
+    external: true
+    name: canbankx-network

@@ -1,0 +1,35 @@
+@startuml Activity-UC06
+title CanBankX - UC-06 Paiement de factures
+
+|Client|
+start
+:Sélectionner fournisseur,\ncompte source et montant;
+:Soumettre la demande de paiement;
+
+|CanBankX|
+:Valider format et champs obligatoires;
+if (Données valides?) then (Oui)
+  :Vérifier authentification et droits d'accès;
+  if (Autorisé?) then (Oui)
+    :Récupérer compte source;
+    :Verifier solde disponible;
+    if (Solde suffisant?) then (Oui)
+      :Débiter compte source;
+      :Marquer transaction PENDING;
+      :Envoyer notification de paiement\nau fournisseur;
+      :Journaliser audit + écriture comptable;
+      :Générer confirmation d'envoie du paiement;
+    else (Non)
+      :Marquer transaction REJECTED;
+    endif
+  else (Non)
+    :Refuser transaction (401/403);
+  endif
+else (Non)
+  :Refuser transaction (400);
+endif
+
+|Client|
+:Recevoir statut et confirmation\n(id transaction, montant, etat);
+stop
+@enduml

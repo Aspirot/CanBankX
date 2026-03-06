@@ -1,0 +1,19 @@
+@startuml Activity-UC08
+title CanBankX - UC-08 Clôture journalière & relevés (EOD)
+
+|CanBankX Scheduler|
+start
+:Déclencher le traitement EOD;
+
+|CanBankX|
+:Agréger les transactions du jour;
+if (Transactions agrégées?) then (Oui)
+  :Générer les relevés quotidiens;
+  :Archiver les relevés;
+  :Mettre les relevés a disposition du client;
+  :Journaliser l'exécution EOD;
+else (Non)
+  :Journaliser l'échec d'agrégation;
+endif
+stop
+@enduml

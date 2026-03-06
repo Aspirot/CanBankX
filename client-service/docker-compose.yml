@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  client-db:
+    image: postgres:15
+    container_name: client-db
+    environment:
+      POSTGRES_DB: clientdb
+      POSTGRES_USER: client
+      POSTGRES_PASSWORD: client
+    ports:
+      - "5433:5432"
+    volumes:
+      - client-db-data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U client -d clientdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - canbankx-network
+
+  client-service:
+    build: .
+    container_name: client-service
+    depends_on:
+      client-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://client-db:5432/clientdb
+      SPRING_DATASOURCE_USERNAME: client
+      SPRING_DATASOURCE_PASSWORD: client
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/bank-realm
+      INTERNAL_GATEWAY_HEADER_NAME: X-Internal-Gateway
+      INTERNAL_GATEWAY_SECRET: canbankx-gateway-secret
+    ports:
+      - "8081:8081"
+    networks:
+      - canbankx-network
+
+volumes:
+  client-db-data:
+
+networks:
+  canbankx-network:
+    external: true
+    name: canbankx-network

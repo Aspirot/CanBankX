@@ -54,18 +54,20 @@ class Account {
 
 abstract class Transaction {
     - id : Long
+    - idempotencyKey : String
     - amount : Double
     - creationDate : Date
     - status : TransactionStatus
 }
 
 class Transfer {
+    - destinationEmail : String
 }
 
-class Payment {
+class Payment #00FF00 {
 }
 
-class Supplier {
+class Supplier #00FF00 {
     - id : Long
     - name : String
     - serviceType : String
@@ -74,6 +76,7 @@ class Supplier {
 
 class LedgerEntry {
     - id : Long
+    - idempotencyKey : String
     - amount : Double
     - date : Date
     - entryType : EntryType
@@ -94,4 +97,9 @@ Payment "*" -- "1" Supplier : fournisseur >
 Transaction "1" -- "*" LedgerEntry : génère >
 LedgerEntry "*" -- "1" Account : account >
 
+legend
+    |Couleur| Description |
+    | | Implémenté |
+    |<#00FF00>| Non implémenté |
+end legend
 @enduml

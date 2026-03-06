@@ -1,0 +1,43 @@
+@startuml Activity-UC05
+title CanBankX - UC-05 Virement bancaire (interne / Intérac simulé)
+
+|Client|
+start
+:Saisir bénéficiaire, montant,\ncompte source et type de virement;
+:Soumettre la demande de virement;
+
+|CanBankX|
+:Valider format et champs obligatoires;
+if (Données valides?) then (Oui)
+  :Verifier authentification et droits d'accès;
+  if (Autorisé?) then (Oui)
+    :Récupérer compte source;
+    :Verifier solde disponible;
+    if (Solde suffisant?) then (Oui)
+      :Exécuter contrôles AML\n(seuil, fréquence, pattern);
+      if (Virement interne?) then (Oui)
+        :Débiter compte source;
+        :Créditer compte destination;
+          :Marquer transaction COMPLETED;
+      else (Intérac simule)
+        :Débiter compte source;
+        :Marquer transaction PENDING;
+        :Envoyer ordre vers réseau\nIntérac simule;
+      endif
+      :Écrire journal comptable\n(ledger-service);
+      :Générer confirmation;
+    else (Non)
+      :Marquer transaction REJECTED;
+    endif
+  else (Non)
+    :Refuser transaction (401/403);
+  endif
+else (Non)
+  :Refuser transaction (400);
+endif
+
+|Client|
+:Recevoir statut et confirmation\n(id transaction, montant, état);
+
+stop
+@enduml
